@@ -11,8 +11,12 @@ analytics, nothing sent anywhere but the ECB feed.
 
 ## Status
 
-Scaffold. The `tool/` module still carries the SDK's sample screens until the
-first real screen lands.
+Units work end to end in the LightOS emulator: pick a category, pick units,
+type an amount, swap. Currency is not built yet.
+
+| Home | Converter | Pick a unit | Amount | Result |
+|---|---|---|---|---|
+| ![Home](screenshots/01-home.png) | ![Length](screenshots/02-length.png) | ![Pick from](screenshots/03-pick-from.png) | ![Amount](screenshots/04-amount.png) | ![Result](screenshots/05-result.png) |
 
 ## Build
 
