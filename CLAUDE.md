@@ -30,4 +30,25 @@ Build success alone is not done.
 ## Conventions
 
 - Small commits, one concern each. No emojis. Sparse comments.
+- Stacked PRs, using GitHub's stack feature through `gh stack`: a change is
+  a chain of small branches, each PR targeting the branch below it, each
+  level passing `./gradlew check` on its own. Name levels for their content
+  (`convert/units`, `convert/screens`). This clone has an `upstream` remote,
+  so run the extension with `--remote github` and `GH_REPO` set to this repo.
 - Bump `versionCode` on every shipped build; `versionName` is strict semver.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in this repo's GitHub Issues, driven with `gh` and always with
+`GH_REPO=unfixedjuices/convert` set. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default triage labels, unchanged. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` and `docs/adr/` at the repo root, created when a
+term or decision is actually resolved. See `docs/agents/domain.md`.
