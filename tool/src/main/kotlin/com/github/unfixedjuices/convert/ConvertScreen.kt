@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.foundation.text.input.selectAll
+import androidx.compose.foundation.text.input.placeCursorAtEnd
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -42,12 +42,12 @@ enum class ConvertMode { Main, PickFrom, PickTo, EnterAmount }
 
 data class ConvertUiState(
     val category: Category,
-    val units: List<ConvertUnit>,
     val fromIndex: Int = 0,
     val toIndex: Int = 1,
     val amountText: String = "1",
     val mode: ConvertMode = ConvertMode.Main,
 ) {
+    val units: List<ConvertUnit> get() = category.units
     val from: ConvertUnit get() = units[fromIndex]
     val to: ConvertUnit get() = units[toIndex]
     val amount: Double? get() = Units.parse(amountText)
@@ -56,9 +56,7 @@ data class ConvertUiState(
 }
 
 class ConvertViewModel(category: Category) : LightViewModel<Unit>() {
-    private val _uiState = MutableStateFlow(
-        ConvertUiState(category = category, units = Units.of(category)),
-    )
+    private val _uiState = MutableStateFlow(ConvertUiState(category = category))
     val uiState: StateFlow<ConvertUiState> = _uiState.asStateFlow()
 
     fun pickFrom() = _uiState.update { it.copy(mode = ConvertMode.PickFrom) }
@@ -76,9 +74,14 @@ class ConvertViewModel(category: Category) : LightViewModel<Unit>() {
 
     fun swap() = _uiState.update { it.copy(fromIndex = it.toIndex, toIndex = it.fromIndex) }
 
+    /** Empty means zero. Text that is not a number keeps the editor open. */
     fun setAmount(text: CharSequence) = _uiState.update {
-        val cleaned = text.toString().trim()
-        it.copy(amountText = cleaned.ifEmpty { "0" }, mode = ConvertMode.Main)
+        val typed = text.toString().trim()
+        when {
+            typed.isEmpty() -> it.copy(amountText = "0", mode = ConvertMode.Main)
+            Units.parse(typed) == null -> it
+            else -> it.copy(amountText = typed, mode = ConvertMode.Main)
+        }
     }
 
     override fun onBackPressed(): Boolean {
@@ -103,12 +106,11 @@ class ConvertScreen(
         val themeColors by LightThemeController.colors.collectAsState()
         val state by viewModel.uiState.collectAsState()
         val textFieldState = rememberTextFieldState(state.amountText)
-        val keyboardOptionsFlow = rememberKeyboardOptions()
         LaunchedEffect(state.mode) {
             if (state.mode == ConvertMode.EnterAmount) {
                 textFieldState.edit {
                     replace(0, length, state.amountText)
-                    selectAll()
+                    placeCursorAtEnd()
                 }
             }
         }
@@ -132,16 +134,17 @@ class ConvertScreen(
                         units = state.units,
                         selectedIndex = if (state.mode == ConvertMode.PickFrom) state.fromIndex else state.toIndex,
                         onSelect = viewModel::select,
-                        onBack = viewModel::closeSub,
+                        onBack = { goBack(Unit) },
                     )
                     ConvertMode.EnterAmount -> LightTextInputEditor(
                         title = "Amount",
                         state = textFieldState,
                         onSubmit = viewModel::setAmount,
-                        onBack = viewModel::closeSub,
-                        keyboardOptionsFlow = keyboardOptionsFlow,
+                        onBack = { goBack(Unit) },
+                        keyboardOptionsFlow = rememberKeyboardOptions(),
                         submitLabel = "DONE",
                         singleLine = true,
+                        editorKey = "amount",
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
