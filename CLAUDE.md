@@ -30,4 +30,7 @@ Build success alone is not done.
 ## Conventions
 
 - Small commits, one concern each. No emojis. Sparse comments.
+- Stacked PRs: a change is a chain of small branches, each PR targeting the
+  branch below it, each level passing `./gradlew check` on its own. Name
+  levels for their content (`convert/units`, `convert/screens`).
 - Bump `versionCode` on every shipped build; `versionName` is strict semver.
